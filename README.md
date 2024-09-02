@@ -56,3 +56,11 @@ A API do PNCP é usada para buscar contratos. O token de autenticação é neces
 
    ```bash
    git clone https://github.com/IuryAlmeidaDev/ProjetoPNCP
+
+Navegue para o diretório do back-end:
+   cd backend
+   
+Instale as dependências:
+   npm install
+
+
