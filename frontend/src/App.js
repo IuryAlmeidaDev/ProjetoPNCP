@@ -1,23 +1,136 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
+import axios from 'axios';
 import './App.css';
 
+const API_URL = 'http://localhost:5000/api'; // URL do seu back-end
+
 function App() {
+  const [user, setUser] = useState([]);
+  const [orgaoInfo, setOrgaoInfo] = useState(null);
+  const [cnpj, setCnpj] = useState('');
+  const [dataInicial, setDataInicial] = useState('');
+  const [dataFinal, setDataFinal] = useState('');
+  const [pagina, setPagina] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const fetchContracts = async () => {
+    setLoading(true);
+    const intervalId = setInterval(async () => {
+      try {
+        const response = await axios.get("https://pncp.gov.br/api/consulta/v1/contratos", {
+          params: {
+            cnpj,
+            dataInicial,
+            dataFinal,
+            pagina,
+            tamanhoPagina: 500
+          }
+        });
+
+        if (response.status === 200) {
+          const filteredContracts = response.data.data.filter(item => item.orgaoEntidade.cnpj === cnpj);
+
+          if (filteredContracts.length > 0) {
+            setOrgaoInfo(filteredContracts[0].orgaoEntidade);
+          }
+
+          setUser(filteredContracts);
+          await sendContractsToBackend(filteredContracts); // Envia os contratos para o back-end
+          clearInterval(intervalId); // Limpa o intervalo quando a resposta é bem-sucedida
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Ops! Ocorreu um erro: ", err);
+        // Continue tentando até obter uma resposta com sucesso
+      }
+    }, 2000); // Intervalo de 2 segundos
+  };
+
+  const sendContractsToBackend = async (contracts) => {
+    try {
+      await axios.post(`${API_URL}/contratos`, { contratos: contracts });
+      console.log('Contratos enviados com sucesso para o back-end');
+    } catch (err) {
+      console.error('Erro ao enviar contratos para o back-end:', err);
+    }
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    fetchContracts();
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div className="form-container">
+        <form onSubmit={handleSubmit} className="form">
+          <label>
+            CNPJ:
+            <input
+              type="text"
+              value={cnpj}
+              onChange={(e) => setCnpj(e.target.value)}
+              required
+            />
+          </label>
+          <label>
+            Data Inicial (AAAAMMDD):
+            <input
+              type="text"
+              value={dataInicial}
+              onChange={(e) => setDataInicial(e.target.value)}
+              required
+            />
+          </label>
+          <label>
+            Data Final (AAAAMMDD):
+            <input
+              type="text"
+              value={dataFinal}
+              onChange={(e) => setDataFinal(e.target.value)}
+              required
+            />
+          </label>
+          <label>
+            Página:
+            <input
+              type="number"
+              value={pagina}
+              onChange={(e) => setPagina(e.target.value)}
+              required
+              min="1"
+            />
+          </label>
+          <button type="submit" disabled={loading}>Buscar</button>
+          {loading && <p>Carregando...</p>}
+        </form>
+
+        {orgaoInfo && (
+          <div className="orgao-info">
+            <h2>Informações do Órgão</h2>
+            <p><strong>CNPJ:</strong> {orgaoInfo.cnpj}</p>
+            <p><strong>Razão Social:</strong> {orgaoInfo.razaoSocial}</p>
+            {/* Adicione outras informações relevantes do órgão aqui */}
+          </div>
+        )}
+      </div>
+
+      <div className="box">
+        {user.length > 0 ? (
+          user.map((item, index) => (
+            <div key={index} className="item">
+              <p><strong>Orgão:</strong> {item.orgaoEntidade.razaoSocial}</p>
+              <p><strong>Data de Vigência Inicial:</strong> {item.dataVigenciaInicio}</p>
+              <p><strong>Data de Vigência Final:</strong> {item.dataVigenciaFim}</p>
+              <p><strong>Fornecedor:</strong> {item.nomeRazaoSocialFornecedor}</p>
+              <p><strong>Objeto do Contrato:</strong> {item.objetoContrato}</p>
+              <p><strong>Valor Inicial:</strong> R$ {item.valorInicial}</p>
+            </div>
+          ))
+        ) : (
+          <p>Nenhum contrato encontrado para o CNPJ informado.</p>
+        )}
+      </div>
     </div>
   );
 }

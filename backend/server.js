@@ -1,40 +1,63 @@
-// server.js
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 
 const app = express();
 const port = 5000;
-
+// Configuração básica do CORS
 app.use(cors());
-app.use(express.json());
 
-// Configuração do banco de dados
+app.use(bodyParser.json());
+
+// Conectar ao banco de dados MySQL
 const db = mysql.createConnection({
   host: 'localhost',
-  user: 'root',
-  password: '350022',
-  database: 'PNCP',
+  user: 'root', // Seu usuário do MySQL
+  password: '350022', // Sua senha do MySQL
+  database: 'PNCP' // Nome do seu banco de dados
 });
 
-db.connect(err => {
+db.connect((err) => {
   if (err) {
-    console.error('Erro ao conectar ao banco de dados:', err);
-    return;
+    throw err;
   }
-  console.log('Conectado ao banco de dados');
+  console.log('Conectado ao banco de dados MySQL');
 });
 
-// Rotas da API
-app.get('/api/exemplo', (req, res) => {
-  db.query('SELECT * FROM sua_tabela', (err, results) => {
-    if (err) {
-      res.status(500).send(err);
-      return;
-    }
-    res.json(results);
+app.post('/api/contratos', (req, res) => {
+    const contratos = req.body.contratos;
+  
+    console.log('Contratos recebidos:', contratos); // Log para verificar os dados recebidos
+  
+    contratos.forEach((contrato) => {
+      const sql = 'INSERT INTO Contratos SET ?';
+      const values = {
+        cnpj: contrato.orgaoEntidade.cnpj,
+        dataInicial: contrato.dataInicial, // Certifique-se de que os campos estão corretos
+        dataFinal: contrato.dataFinal,
+        pagina: contrato.pagina,
+        orgaoEntidadeCnpj: contrato.orgaoEntidade.cnpj,
+        orgaoEntidadeRazaoSocial: contrato.orgaoEntidade.razaoSocial,
+        dataVigenciaInicio: contrato.dataVigenciaInicio,
+        dataVigenciaFim: contrato.dataVigenciaFim,
+        nomeRazaoSocialFornecedor: contrato.nomeRazaoSocialFornecedor,
+        objetoContrato: contrato.objetoContrato,
+        valorInicial: contrato.valorInicial
+      };
+  
+      db.query(sql, values, (err, result) => {
+        if (err) {
+          console.error('Erro ao inserir contrato:', err);
+          return;
+        }
+        console.log('Contrato inserido com sucesso:', result.insertId);
+      });
+    });
+  
+    res.status(200).json({ message: 'Contratos recebidos com sucesso' });
   });
-});
+  
 
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
