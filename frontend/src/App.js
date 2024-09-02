@@ -1,22 +1,29 @@
+// Importa React e useState para gerenciar o estado do componente
 import React, { useState } from 'react';
+// Importa axios para fazer requisições HTTP
 import axios from 'axios';
+// Importa o arquivo de estilos CSS
 import './App.css';
 
-const API_URL = 'http://localhost:5000/api'; // URL do seu back-end
+// URL base para as requisições ao back-end
+const API_URL = 'http://localhost:5000/api';
 
 function App() {
-  const [user, setUser] = useState([]);
-  const [orgaoInfo, setOrgaoInfo] = useState(null);
-  const [cnpj, setCnpj] = useState('');
-  const [dataInicial, setDataInicial] = useState('');
-  const [dataFinal, setDataFinal] = useState('');
-  const [pagina, setPagina] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [totalValue, setTotalValue] = useState(0);
+  // Declara estados para armazenar dados e controle do componente
+  const [user, setUser] = useState([]); // Armazena a lista de contratos
+  const [orgaoInfo, setOrgaoInfo] = useState(null); // Armazena informações do órgão
+  const [cnpj, setCnpj] = useState(''); // Armazena o CNPJ informado pelo usuário
+  const [dataInicial, setDataInicial] = useState(''); // Armazena a data inicial para a busca
+  const [dataFinal, setDataFinal] = useState(''); // Armazena a data final para a busca
+  const [pagina, setPagina] = useState(1); // Armazena o número da página para a busca
+  const [loading, setLoading] = useState(false); // Controle de carregamento
+  const [totalValue, setTotalValue] = useState(0); // Armazena o valor total dos contratos
 
+  // Função para buscar contratos da API externa
   const fetchContracts = async () => {
-    setLoading(true);
+    setLoading(true); // Inicia o estado de carregamento
     try {
+      // Faz uma requisição GET para a API de contratos
       const response = await axios.get("https://pncp.gov.br/api/consulta/v1/contratos", {
         params: {
           cnpj,
@@ -28,43 +35,55 @@ function App() {
       });
 
       if (response.status === 200) {
+        // Filtra contratos com base no CNPJ fornecido
         const filteredContracts = response.data.data.filter(item => item.orgaoEntidade.cnpj === cnpj);
 
         if (filteredContracts.length > 0) {
+          // Define as informações do órgão se houver contratos filtrados
           setOrgaoInfo(filteredContracts[0].orgaoEntidade);
         }
 
+        // Atualiza a lista de contratos
         setUser(filteredContracts);
-        await sendContractsToBackend(filteredContracts); // Envia os contratos para o back-end
-        const total = await calculateTotalContractsValue(filteredContracts); // Calcula o valor total dos contratos
-        setTotalValue(total);
+
+        // Envia contratos para o back-end
+        await sendContractsToBackend(filteredContracts);
+
+        // Calcula o valor total dos contratos
+        const total = await calculateTotalContractsValue(filteredContracts);
+        setTotalValue(total); // Atualiza o valor total
       }
     } catch (err) {
-      console.error("Ops! Ocorreu um erro: ", err);
+      console.error("Ops! Ocorreu um erro: ", err); // Log de erro
     } finally {
-      setLoading(false);
+      setLoading(false); // Finaliza o estado de carregamento
     }
   };
 
+  // Função para enviar contratos para o back-end
   const sendContractsToBackend = async (contracts) => {
     try {
+      // Faz uma requisição POST para enviar contratos ao back-end
       await axios.post(`${API_URL}/contratos`, { contratos: contracts });
       console.log('Contratos enviados com sucesso para o back-end');
     } catch (err) {
-      console.error('Erro ao enviar contratos para o back-end:', err);
+      console.error('Erro ao enviar contratos para o back-end:', err); // Log de erro
     }
   };
 
+  // Função para calcular o valor total dos contratos
   const calculateTotalContractsValue = (contracts) => {
     return contracts.reduce((total, contrato) => {
+      // Converte o valor inicial para número e acumula no total
       const valor = parseFloat(contrato.valorInicial) || 0;
       return total + valor;
     }, 0);
   };
 
+  // Função para lidar com o envio do formulário
   const handleSubmit = (event) => {
-    event.preventDefault();
-    fetchContracts();
+    event.preventDefault(); // Previne o comportamento padrão do formulário
+    fetchContracts(); // Chama a função para buscar contratos
   };
 
   return (
@@ -76,7 +95,7 @@ function App() {
             <input
               type="text"
               value={cnpj}
-              onChange={(e) => setCnpj(e.target.value)}
+              onChange={(e) => setCnpj(e.target.value)} // Atualiza o estado do CNPJ
               required
             />
           </label>
@@ -85,7 +104,7 @@ function App() {
             <input
               type="text"
               value={dataInicial}
-              onChange={(e) => setDataInicial(e.target.value)}
+              onChange={(e) => setDataInicial(e.target.value)} // Atualiza o estado da data inicial
               required
             />
           </label>
@@ -94,7 +113,7 @@ function App() {
             <input
               type="text"
               value={dataFinal}
-              onChange={(e) => setDataFinal(e.target.value)}
+              onChange={(e) => setDataFinal(e.target.value)} // Atualiza o estado da data final
               required
             />
           </label>
@@ -103,13 +122,13 @@ function App() {
             <input
               type="number"
               value={pagina}
-              onChange={(e) => setPagina(e.target.value)}
+              onChange={(e) => setPagina(e.target.value)} // Atualiza o estado da página
               required
               min="1"
             />
           </label>
           <button type="submit" disabled={loading}>Buscar</button>
-          {loading && <p>Carregando...</p>}
+          {loading && <p>Carregando...</p>} {/* Exibe mensagem de carregamento */}
         </form>
 
         {orgaoInfo && (
@@ -117,7 +136,13 @@ function App() {
             <h2>Informações do Órgão</h2>
             <p><strong>CNPJ:</strong> {orgaoInfo.cnpj}</p>
             <p><strong>Razão Social:</strong> {orgaoInfo.razaoSocial}</p>
-            {/* Adicione outras informações relevantes do órgão aqui */}
+            {/* Exibe o valor total dos contratos junto com as informações do órgão */}
+            {totalValue > 0 && (
+              <div className="total-value">
+                <h2>Valor Total dos Contratos</h2>
+                <p><strong>Total:</strong> R$ {totalValue.toFixed(2)}</p>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -138,13 +163,6 @@ function App() {
           <p>Nenhum contrato encontrado para o CNPJ informado.</p>
         )}
       </div>
-
-      {totalValue > 0 && (
-        <div className="total-value">
-          <h2>Valor Total dos Contratos</h2>
-          <p><strong>Total:</strong> R$ {totalValue.toFixed(2)}</p>
-        </div>
-      )}
     </div>
   );
 }
