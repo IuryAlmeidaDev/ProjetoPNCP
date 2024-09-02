@@ -57,10 +57,49 @@ A API do PNCP é usada para buscar contratos. O token de autenticação é neces
    ```bash
    git clone https://github.com/IuryAlmeidaDev/ProjetoPNCP
 
-Navegue para o diretório do back-end:
-   cd backend
-   
-Instale as dependências:
-   npm install
+## Configuração do Projeto
+
+### Configuração do Back-End
+
+1. **Navegue para o diretório do back-end:**
+
+   `cd backend`
+
+2. **Instale as dependências:**
+
+   `npm install`
+
+3. **Configure o banco de dados MySQL:**
+
+   - Crie um banco de dados com o nome `PNCP`.
+   - Atualize as credenciais do banco de dados no arquivo de configuração do back-end.
+
+4. **Inicie o servidor:**
+
+   `npm start`
+
+   O servidor estará rodando na porta `5000`.
+
+### Configuração do Front-End
+
+1. **Navegue para o diretório do front-end:**
+
+   `cd frontend`
+
+2. **Instale as dependências:**
+
+   `npm install`
+
+3. **Inicie o servidor de desenvolvimento:**
+
+   `npm start`
+
+   O front-end estará disponível em `http://localhost:3000`.
+
+### Acessar a Aplicação
+
+Abra um navegador e acesse `http://localhost:3000` para visualizar a aplicação.
+
+
 
 
