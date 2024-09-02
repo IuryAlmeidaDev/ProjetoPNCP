@@ -12,38 +12,38 @@ function App() {
   const [dataFinal, setDataFinal] = useState('');
   const [pagina, setPagina] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [totalValue, setTotalValue] = useState(0);
 
   const fetchContracts = async () => {
     setLoading(true);
-    const intervalId = setInterval(async () => {
-      try {
-        const response = await axios.get("https://pncp.gov.br/api/consulta/v1/contratos", {
-          params: {
-            cnpj,
-            dataInicial,
-            dataFinal,
-            pagina,
-            tamanhoPagina: 500
-          }
-        });
-
-        if (response.status === 200) {
-          const filteredContracts = response.data.data.filter(item => item.orgaoEntidade.cnpj === cnpj);
-
-          if (filteredContracts.length > 0) {
-            setOrgaoInfo(filteredContracts[0].orgaoEntidade);
-          }
-
-          setUser(filteredContracts);
-          await sendContractsToBackend(filteredContracts); // Envia os contratos para o back-end
-          clearInterval(intervalId); // Limpa o intervalo quando a resposta é bem-sucedida
-          setLoading(false);
+    try {
+      const response = await axios.get("https://pncp.gov.br/api/consulta/v1/contratos", {
+        params: {
+          cnpj,
+          dataInicial,
+          dataFinal,
+          pagina,
+          tamanhoPagina: 500
         }
-      } catch (err) {
-        console.error("Ops! Ocorreu um erro: ", err);
-        // Continue tentando até obter uma resposta com sucesso
+      });
+
+      if (response.status === 200) {
+        const filteredContracts = response.data.data.filter(item => item.orgaoEntidade.cnpj === cnpj);
+
+        if (filteredContracts.length > 0) {
+          setOrgaoInfo(filteredContracts[0].orgaoEntidade);
+        }
+
+        setUser(filteredContracts);
+        await sendContractsToBackend(filteredContracts); // Envia os contratos para o back-end
+        const total = await calculateTotalContractsValue(filteredContracts); // Calcula o valor total dos contratos
+        setTotalValue(total);
       }
-    }, 2000); // Intervalo de 2 segundos
+    } catch (err) {
+      console.error("Ops! Ocorreu um erro: ", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const sendContractsToBackend = async (contracts) => {
@@ -53,6 +53,13 @@ function App() {
     } catch (err) {
       console.error('Erro ao enviar contratos para o back-end:', err);
     }
+  };
+
+  const calculateTotalContractsValue = (contracts) => {
+    return contracts.reduce((total, contrato) => {
+      const valor = parseFloat(contrato.valorInicial) || 0;
+      return total + valor;
+    }, 0);
   };
 
   const handleSubmit = (event) => {
@@ -131,6 +138,13 @@ function App() {
           <p>Nenhum contrato encontrado para o CNPJ informado.</p>
         )}
       </div>
+
+      {totalValue > 0 && (
+        <div className="total-value">
+          <h2>Valor Total dos Contratos</h2>
+          <p><strong>Total:</strong> R$ {totalValue.toFixed(2)}</p>
+        </div>
+      )}
     </div>
   );
 }
