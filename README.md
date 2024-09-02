@@ -100,17 +100,9 @@ A API do PNCP é usada para buscar contratos. O token de autenticação é neces
 
 Abra um navegador e acesse `http://localhost:3000` para visualizar a aplicação.
 
+
 MIT License
 
 Copyright (c) 2024 Iury Almeida
-
-Permissão é concedida, gratuitamente, a qualquer pessoa que obtenha uma cópia deste software e dos arquivos de documentação associados (o "Software"), para lidar no Software sem restrição, incluindo, sem limitação, os direitos de usar, copiar, modificar, mesclar, publicar, distribuir, sublicenciar e/ou vender cópias do Software, sujeitas às seguintes condições:
-
-A acima nota de copyright e esta nota de permissão devem ser incluídas em todas as cópias ou partes substanciais do Software.
-
-O Software é fornecido "no estado em que se encontra", sem garantia de qualquer tipo, expressa ou implícita, incluindo, mas não se limitando às garantias implícitas de comercialização, adequação a um propósito específico e não violação. Em nenhum caso os autores ou titulares dos direitos autorais serão responsáveis por qualquer reclamação, dano ou outra responsabilidade, seja em uma ação de contrato, ato ilícito ou de outro modo, decorrente de ou em conexão com o Software ou o uso ou outras negociações no Software.
-
-
-
 
 
